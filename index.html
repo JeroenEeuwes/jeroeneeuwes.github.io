@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Dreame | Valetudo</title>
+<meta name="generator" content="Jekyll v3.9.5" />
+<meta property="og:title" content="Dreame" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Dreame rooting and installation" />
+<meta property="og:description" content="Dreame rooting and installation" />
+<link rel="canonical" href="https://valetudo.cloud/pages/installation/dreame.html" />
+<meta property="og:url" content="https://valetudo.cloud/pages/installation/dreame.html" />
+<meta property="og:site_name" content="Valetudo" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Dreame" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Dreame rooting and installation","headline":"Dreame","url":"https://valetudo.cloud/pages/installation/dreame.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="https://valetudo.cloud/assets/css/style.css?v=a15858ed00359dec4b49ef4e35a32c10d9eb637a">
+    <link rel="alternate" type="application/atom+xml" title="Valetudo Releases RSS Feed" href="https://github.com/Hypfer/Valetudo/releases.atom" />
+
+  </head>
+  <body>
+
+      <div id="minimalLogo">
+          <div style="text-align: center; margin-bottom: 0.5em;">
+            <img src="https://valetudo.cloud/img/valetudo_logo_with_name.svg" alt="Valetudo Full Logo">
+          </div>
+      </div>
+
+
+
+      <h1 id="dreame-rooting-and-installation">Dreame rooting and installation</h1>
+
+<p>Please check the <a href="https://valetudo.cloud/pages/general/supported-robots.html">supported robots</a> page to find out which method applies to your model of robot.</p>
+<p>This page describes the Fastboot method. If your robot requires another rooting method go back and find the correct page.</p>
+
+<p>Also note that all rooting guides assume a factory-new robot that has never been connected to the vendor cloud.<br />
+If you’ve used any vendor apps before, make sure to do a <b>full factory-reset</b> before starting with the rooting procedure.</p>
+<div class="section-box">
+ <h2 id="fastboot-">Fastboot <a id="fastboot"></a></h2>
+
+  <p>This method abuses the proprietary Allwinner LiveSuit tool for Linux with somewhat hacked LiveSuit images. Because of that, it’s a bit janky. You will also need some advanced linux knowledge.</p>
+
+  <p>This Guide assumes that you have just installed a fresh copy of Debian Bookworm with some kind of GUI (e.g. KDE).<br />
+Please use a native install for this, as VMs will usually be troublesome.</p>
+
+  <div class="alert alert-important" role="alert">
+  <p>
+    <strong>Important:</strong><br />
+    This method can permanently brick your robot if you're not careful.<br />
+    Make sure to fully read through the guide a few times before attempting the root.<br />
+    You need to understand what you're going to do before you start attempting to do it.
+</p>
+</div>
+
+  <h3 id="high-level-overview-1">High-level overview</h3>
+
+  <p>This is a multi-staged rooting method, consisting of four phases:</p>
+
+  <ol>
+    <li>First, phase 0 is the preparation phase</li>
+    <li>Next, phase 1 is the recon phase. We analyze the robot and the software on it to determine the right way to patch out security features that would otherwise prevent the root.</li>
+    <li>In phase 2 we use the information gathered in phase 1 to apply the necessary changes to the robot and flash a rooted firmware image.</li>
+    <li>Lastly, phase 3 is when we install Valetudo to that rooted firmware.</li>
+  </ol>
+
+  <h3 id="phase-0-preparation">Phase 0: Preparation</h3>
+
+  <h4 id="software-preparation">Software preparation</h4>
+
+  <p>For this root, you need to set up your Laptop with Debian and install livesuit on it. To do that, head over to <a href="https://github.com/Hypfer/valetudo-sunxi-livesuit" rel="noopener" target="_blank">https://github.com/Hypfer/valetudo-sunxi-livesuit</a> and follow the instructions in the readme.</p>
+
+  <p>You can of course use any linux distribution you want, however, if you want to receive support, please stick with Debian.</p>
+
+  <h4 id="gain-access-to-the-debug-connector">Gain access to the debug connector</h4>
+
+  <p>Next, you have to gain access to the 16-pin Dreame Debug Connector.For most round-shaped dreames, this means removing the top plastic cover with a pry tool or your fingers like so:</p>
+
+  <p><img src="https://valetudo.cloud/pages/installation/img/how_to_open_a_dreame.jpg" alt="How to open a Dreame" /></p>
+
+  <p>If your Dreame is a D-shaped Mop such as the W10 Pro, simply take out the dustbin and open the rubber flap in front of that port.</p>
+
+  <h4 id="note-for-advanced-users-1">Note for advanced users</h4>
+
+  <p>While the Dreame Breakout PCB greatly simplifies the process, it is not strictly <em>required</em> but just <em>highly recommended</em> to avoid various pitfalls like using the wrong pitch and breaking the connector, shorting stuff etc.</p>
+
+  <p>Just remember that you will be running USB 2.0 at 480MBit/s over that connection. And, while some random unshielded untwisted dupont cables might work for UART at 115200 baud, that UART connection is doing less than 1% of the data rate of USB 2.0.</p>
+
+  <p>Since high-speed protocols have far higher demands on signal integrity, the connection will likely either not work at all or break down during data transfers, leading to confusion.</p>
+
+  <p><b>You should <em>really</em> be using the PCB.</b></p>
+
+  <details>
+<summary>If you know what you're doing, here's the relevant pinout for you (click me)</summary><br />
+<img src="https://valetudo.cloud/pages/installation/img/dreame_debug_connector_pinout.png" /><br />
+On some dreames, the debug connector is rotated by 90°:<br />
+<img src="https://valetudo.cloud/pages/installation/img/dreame_debug_connector_pinout_90.png" />
+<br />
+while on others, it might be flipped backwards:<br />
+<img src="https://valetudo.cloud/pages/installation/img/dreame_debug_connector_w10.jpg" />
+<br />
+<p>
+If you <strong>don't</strong> know what you're doing and start bothering the support chat with questions on what to do with this pinout, I will send you pictures of sad kittens. You have been warned.
+</p>
+</details>
+
+  <p><br /></p>
+
+  <h3 id="phase-1-recon">Phase 1: Recon</h3>
+
+  <p>As described in the high-level overview, we start by doing some reconnaissance on the robot.</p>
+
+  <h4 id="get-the-config-value">Get the config value</h4>
+
+  <p>Once you see a LiveSuit window, download the latest stage1 dustbuilder livesuit image for your robot:</p>
+  <ul>
+    <li><a href="https://builder.dontvacuum.me/nextgen/dust-livesuit-mr813-ddr4.img" rel="noopener" target="_blank">L10s Ultra</a></li>
+    <li><a href="https://builder.dontvacuum.me/nextgen/dust-livesuit-mr813-ddr3.img" rel="noopener" target="_blank">D10s Pro/Plus, W10 Pro</a></li>
+  </ul>
+
+  <p>and select that as the Image in the LiveSuit tool.</p>
+
+  <p><img src="https://valetudo.cloud/pages/installation/img/dreame_livesuit_stage1.png" alt="Dreame Livesuit Stage1" /></p>
+
+  <p>Turn off your robot. Hold the power button untill the shutdown sound plays ans wait a few seconds for the shutdown to complete.</p>
+
+  <p>Now, plug the Breakout PCB into your robot. Make sure that the USB OTG ID Jumper is <strong>NOT</strong> set and plug a cable into the Micro USB port.</p>
+
+  <p><img src="https://valetudo.cloud/pages/installation/img/dreame_breakout_fel.jpg" alt="Dreame Breakout PCB connected" /></p>
+
+  <ol>
+    <li>Press and hold the button on the PCB.</li>
+    <li>Then, press and hold the power button of the robot. Keep pressing the button on the PCB.</li>
+    <li>After 5s, release the power button of the robot.</li>
+    <li>Continue holding the button on the PCB for 3 additional seconds.</li>
+  </ol>
+
+  <p>The button LEDs of the robot should now be pulsing. With that, plug the USB cable into your computer. LiveSuit should now display this message box:</p>
+
+  <p><img src="https://valetudo.cloud/pages/installation/img/dreame_livesuit_msgbox.png" alt="Dreame Livesuit Msgbox" /></p>
+
+  <p>Click no. This should now have booted your robot into Fastboot. To verify that, open a new terminal and run <code class="language-plaintext highlighter-rouge">fastboot devices</code>. If you see your robot, continue with <code class="language-plaintext highlighter-rouge">fastboot getvar config</code></p>
+
+  <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@T420:/home/hypfer# fastboot devices 
+Android Fastboot        fastboot 
+root@T420:/home/hypfer# fastboot getvar config 
+config: 836064ae31f4806c844f708ab8398367 
+Finished. Total time: 0.215s
+</code></pre></div>  </div>
+
+  <p>This config value is important to select the correct bootloader patches and prevent bricks. Write it down somewhere as you will also need it for updating the firmware in the future.</p>
+
+  <h4 id="build-the-firmware-image">Build the firmware image</h4>
+
+  <p>Because there’s a hardware watchdog that will reset your robot and the dustbuilder firmware build takes some time, press and hold the power button for 15s to turn off the robot for now. Also, unplug the USB cable from your laptop.<br />
+If you don’t do this, you risk bricking the device if it gets rebooted during the install procedure.</p>
+
+  <p>Now that you have the correct config value for your robot, head over to <a href="https://builder.dontvacuum.me" rel="noopener" target="_blank">the dustbuilder</a> and build a new firmware for your robot. Make sure to select <code class="language-plaintext highlighter-rouge">Create FEL image (for initial rooting via USB)</code>.</p>
+
+  <h3 id="phase-2-rooting">Phase 2: Rooting</h3>
+
+  <p>Now that we know everything we need to know, we can continue with flashing the rooted firmware image.</p>
+
+  <h4 id="prepare-for-rooting">Prepare for rooting</h4>
+
+  <p>Once the firmware build has finished, download your <code class="language-plaintext highlighter-rouge">dreame.vacuum.rxxxx_xxxx_fel.zip</code> to the laptop and unpack it. Navigate the second terminal for fastboot into the folder containing the contents of that zip file.</p>
+
+  <p>Close LiveSuit and open it again.</p>
+  
+  <p>Select the newly generated image from the zip named <code class="language-plaintext highlighter-rouge">_dreame.vacuum.rxxxx_phoenixsuit.img</code>. Open the <code class="language-plaintext highlighter-rouge">check.txt</code> and copy the content into your clipboard.</p>
+
+  <p>Remove the USB cable from your computer, but leave in the PCB. The PCB should remain in yout robot. Turn off your robot. Hold the power button until the shutdown sound plays and wait a few seconds for the shutdown to complete. The we start process to get fastboot access again</p>
+
+  <ol>
+    <li>Press and hold the button on the PCB.</li>
+    <li>Then, press and hold the power button of the robot. Keep pressing the button on the PCB.</li>
+    <li>After 5s, release the power button of the robot.</li>
+    <li>Continue holding the button on the PCB for 3 additional seconds.</li>
+  </ol>
+
+  <p>The button LEDs of the robot should now be pulsing. With that, plug the USB cable into your computer. LiveSuit should now display this message box:</p>
+
+  <p><img src="https://valetudo.cloud/pages/installation/img/dreame_livesuit_msgbox.png" alt="Dreame Livesuit Msgbox" /></p>
+
+  <p>Click no. This should now have booted your robot into Fastboot. To verify that, open a new terminal and run <code class="language-plaintext highlighter-rouge">fastboot devices</code>.
+
+  <p>Remember that you will have <strong>160s to finish the procedure</strong> or else the watchdog might brick devices.</p>
+
+  <h4 id="root-the-robot">Root the robot</h4>
+
+  <p>Now the robot is back in fastboot again, run <code class="language-plaintext highlighter-rouge">fastboot getvar config</code> to start the procedure.</p>
+
+  <p>Then, run <code class="language-plaintext highlighter-rouge">fastboot oem dust &lt;value&gt;</code> with <code class="language-plaintext highlighter-rouge">&lt;value&gt;</code> being the one you’ve copied from the <code class="language-plaintext highlighter-rouge">check.txt</code> into your clipboard.<br />
+Fastboot should confirm this action with <code class="language-plaintext highlighter-rouge">OKAY</code>. If it doesn’t, <strong>DO NOT PROCEED</strong>.</p>
+
+  <p>Next step is to run <code class="language-plaintext highlighter-rouge">fastboot oem prep</code>.<br />
+Fastboot should confirm this action with <code class="language-plaintext highlighter-rouge">OKAY</code>. If it doesn’t, <strong>DO NOT PROCEED</strong>.</p>
+
+  <p>Next step is <code class="language-plaintext highlighter-rouge">fastboot flash toc1 toc1.img</code>.<br />
+Fastboot should confirm this action with <code class="language-plaintext highlighter-rouge">OKAY</code>. If it doesn’t, <strong>DO NOT PROCEED</strong>.</p>
+
+  <p>With that done, secure boot should be defeated. But rooting isn’t done and the timer is still ticking. Continue by flashing the boot and rootfs partitions.</p>
+
+  <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight">
+<code>fastboot flash boot1 boot.img
+fastboot flash rootfs1 rootfs.img
+
+fastboot flash boot2 boot.img
+fastboot flash rootfs2 rootfs.img
+</code></pre></div>  </div>
+
+  <p>This can take a few seconds and may also print an error message like <code class="language-plaintext highlighter-rouge">Invalid sparse file format at header magic</code>. You can just ignore that one.<br />
+<strong>BUT</strong> as with the commands above, fastboot should confirm all of this with <code class="language-plaintext highlighter-rouge">OKAY</code>. If it doesn’t, <strong>DO NOT PROCEED</strong>.</p>
+
+  <p>Finally, run <code class="language-plaintext highlighter-rouge">fastboot reboot</code>. If it boots up normally, you have successfully rooted your robot.<br />
+If it doesn’t, try turning your robot off and starting it again using the power button. If that doesn't work please open a VAERS ticket at <a href="https://vaers.dontvacuum.me" rel="noopener" target="_blank">vaers.dontvacuum.me</a>or ask for support in the support groups.</p>
+
+  <h3 id="phase-3-install-valetudo">Phase 3: Install Valetudo</h3>
+
+  <p>With the rooted firmware installed, we finish the procedure by installing Valetudo to it.</p>
+
+  <p>For that, first, check the <a href="https://valetudo.cloud/pages/general/supported-robots.html">Supported Robots</a> page and look up which <code class="language-plaintext highlighter-rouge">Valetudo Binary</code> is the right one for your robot.</p>
+
+  <p>Once you know that, download the latest matching Valetudo binary to your laptop:
+<code class="language-plaintext highlighter-rouge">https://github.com/Hypfer/Valetudo/releases/latest/download/valetudo-{armv7,armv7-lowmem,aarch64}</code></p>
+
+  <p>With the Valetudo binary downloaded, head over to <a href="https://github.com/Hypfer/valetudo-helper-httpbridge" rel="noopener" target="_blank">https://github.com/Hypfer/valetudo-helper-httpbridge</a> and download a matching binary for your laptops operating system.</p>
+
+  <p>Now, connect the laptop to the Wi-Fi Access Point of the robot. Make a not of the IP address that your laptop got. It's usually 192.168.5.101, but it might be different. Use that IP address in all commands below where the 192.168.5.101 address is used.<br />
+You should be able to connect to it via ssh. Do that now and keep the shell open: <code class="language-plaintext highlighter-rouge">ssh -i ./your/keyfile root@192.168.5.1</code></p>
+
+  <p>The next step is to start the utility webserver. Open a new terminal and run the <code class="language-plaintext highlighter-rouge">./valetudo-helper-httpbridge-amd64</code> binary <strong>Don’t close that window until you’re done.</strong> The server will create a new <code class="language-plaintext highlighter-rouge">www</code> directory right next to itself as well as print out a few sample commands explaining how to download from and upload to it.</p>
+
+  <p>Make sure that it is listening on an IP in the range of <code class="language-plaintext highlighter-rouge">192.168.5.0/24</code> and then copy the downloaded valetudo binary to the newly created <code class="language-plaintext highlighter-rouge">www</code> folder. Remove the <code class="language-plaintext highlighter-rouge">{-aarch64,lowmem,..}</code> etc. suffix. It should just be called <code class="language-plaintext highlighter-rouge">valetudo</code>.</p>
+
+  <div class="emphasis-box">
+    <div class="alert alert-important" role="alert">
+  <p>
+    <strong>Important:</strong><br />
+    Before you continue with the rooting procedure of your robot, please make sure to create a backup of your calibration and identity data to allow for disaster recovery.
+</p>
+</div>
+
+    <p>The easiest way of doing this is by creating a tar archive of everything important and then uploading it to your laptop, which at this point should be connected to the robots Wi-Fi AP.</p>
+
+    <p>To do that, use the ssh shell to create a tar file of all the required files like so:</p>
+
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tar cvf /tmp/backup.tar /mnt/private/ /mnt/misc/</code></pre></div>    </div>
+
+    <p>Then, look at the output of the <code class="language-plaintext highlighter-rouge">valetudo-helper-httpbridge</code> instance you’ve started previously. It contains an example curl command usable for uploading that should look similar to this one:</p>
+
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl -X POST http://192.168.5.101:1337/upload -F 'file=@/tmp/backup.tar' </code></pre></div>    </div>
+
+    <p>Execute the command and verify that the upload to your laptop was successful. If everything worked out correctly, you should now see a backup.tar with a non-zero size in <code class="language-plaintext highlighter-rouge">www/uploads</code>.</p>
+
+    <p>If you’re experiencing issues, make sure that you’ve specified the correct port.</p>
+
+  </div>
+
+  <p>After uploading the backup and storing it in a safe place, you can now download the valetudo binary that you’ve previously put in the <code class="language-plaintext highlighter-rouge">www</code> directory. <code class="language-plaintext highlighter-rouge">valetudo-helper-httpbridge</code> will tell you the correct command, which should look similar to this:</p>
+
+  <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>wget http://192.168.5.101:1337/valetudo </code></pre></div>  </div>
+
+  <p>After downloading the Valetudo binary, finish the install by running these commands on the robot:</p>
+  <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight">
+<code>mv /tmp/valetudo /data/valetudo
+chmod +x /data/valetudo
+cp /misc/_root_postboot.sh.tpl /data/_root_postboot.sh
+chmod +x /data/_root_postboot.sh
+
+reboot
+</code></pre></div>  </div>
+
+  <p>Once the robot has rebooted, you can continue with the <a href="https://valetudo.cloud/pages/general/getting-started.html#joining_wifi">getting started guide</a>.</p>
+
+</div>
+</body>
+</html>
